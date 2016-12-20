@@ -4,7 +4,7 @@
   vars:
     - homeDir: /home
     - appDir: siphon
-    - repo: remote-siphon
+    - repo: /siphonjs/remote-siphon
     - account: *your github account*
     - privateKey: *location to your key*
 
@@ -26,7 +26,7 @@
     copy: src={{privateKey}} dest={{homeDir}} mode=0600
 
   - name: Git Clone Repo
-    git: repo=git@github.com:{{account}}/{{repo}}.git dest={{homeDir}}/{{appDir}} update=yes force=yes accept_hostkey=yes key_file={{homeDir}}/siphongit
+    git: repo=git@github.com:{{repo}}.git dest={{homeDir}}/{{appDir}} update=yes force=yes accept_hostkey=yes key_file={{homeDir}}/siphongit
     register: git_finished
 
   - name: Running NPM Install 
