@@ -1,0 +1,52 @@
+---
+- hosts: siphon
+
+  vars:
+    - homeDir: /home
+    - appDir: siphon
+    - repo: remote-siphon
+    - account: *your github account*
+    - privateKey: *location to your key*
+
+  tasks:
+  - name: Install Packages
+    apt: name={{item}} update_cache=yes state=latest
+    with_items:
+      - build-essential
+      - nodejs-legacy
+      - git
+      - curl
+      - libssl-dev
+      - npm
+
+  - name: Create APP Directory
+    file: path={{homeDir}}/{{appDir}} state=directory
+
+  - name: Copy Private Key
+    copy: src={{privateKey}} dest={{homeDir}} mode=0600
+
+  - name: Git Clone Repo
+    git: repo=git@github.com:{{account}}/{{repo}}.git dest={{homeDir}}/{{appDir}} update=yes force=yes accept_hostkey=yes key_file={{homeDir}}/siphongit
+    register: git_finished
+
+  - name: Running NPM Install 
+    npm: path={{homeDir}}/{{appDir}} state=latest
+    register: npm_finished
+
+  - name: Install latest node
+    command: npm install n -g
+
+  - name: Switch to latest node version
+    command: n latest
+
+  - name: Install forever to run Node.js app
+    npm: name=forever global=yes state=present
+
+  - name: Check Node.js apps
+    command: forever list
+    register: forever_list
+    changed_when: false
+    
+  - name: Start APP
+    command: forever start {{homeDir}}/{{appDir}}/index.js
+    when: "forever_list.stdout.find('/path/to/app.js') == -1"
